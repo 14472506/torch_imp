@@ -35,7 +35,7 @@ class COCOLoader(data.Dataset):
         im_conv = T.ToTensor()
         img = im_conv(img)
 
-        
+
 
         # applying transforms
         if self.image_transforms is not None:
@@ -49,13 +49,13 @@ class COCOLoader(data.Dataset):
     def __len__(self):
         print(len(self.ids))
         
-if __name__ == "__main__":
-    
-    root_dir = "data/jersey_royal_ds/val"
-    json_root = "data/jersey_royal_ds/val/val.json"
-
-    loader = COCOLoader(root_dir, json_root)
-
-    img, target = loader.__getitem__(1)
-
-    print(target)
+#if __name__ == "__main__":
+#    
+#    root_dir = "data/jersey_royal_ds/val"
+#    json_root = "data/jersey_royal_ds/val/val.json"
+#
+#    loader = COCOLoader(root_dir, json_root)
+#
+#    img, target = loader.__getitem__(1)
+#
+#    print(target)

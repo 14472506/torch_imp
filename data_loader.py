@@ -32,6 +32,10 @@ class COCOLoader(data.Dataset):
         # loading image
         image_path = self.coco.loadImgs(img_id)[0]['file_name']
         img = Image.open(os.path.join(self.root, image_path)).convert('RGB')
+        im_conv = T.ToTensor()
+        img = im_conv(img)
+
+        
 
         # applying transforms
         if self.image_transforms is not None:
@@ -50,6 +54,8 @@ if __name__ == "__main__":
     root_dir = "data/jersey_royal_ds/val"
     json_root = "data/jersey_royal_ds/val/val.json"
 
-    img, target = COCOLoader(root_dir, json_root)
+    loader = COCOLoader(root_dir, json_root)
 
-    print(img)
+    img, target = loader.__getitem__(1)
+
+    print(target)

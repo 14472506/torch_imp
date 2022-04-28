@@ -4,6 +4,7 @@ import torch.utils.data as data
 import os 
 from pycocotools.coco import COCO
 from PIL import Image
+import numpy as np
 
 class COCOLoader(data.Dataset):
     """
@@ -26,27 +27,60 @@ class COCOLoader(data.Dataset):
         img_id = self.ids[idx]
         ann_ids = self.coco.getAnnIds(imgIds = img_id)
         
-        # generating target/s
+        # generating target
         anns = self.coco.loadAnns(ann_ids)
-        first_mask = True
+        
+        labels = []
+        boxes = []        
+        masks_list = []
+        areas = []
+        iscrowds = []
+        
         for ann in anns:
-            mask = self.coco.annToMask(ann)
-            mask = torch.from_numpy(mask) 
-            if first_mask:
-                masks = mask
-                first_mask = False
-                print(mask)
+            
+            labels.append(ann['category_id'])
+            areas.append(ann['area'])
+
+            #bbox = ann['bbox']            
+            #new_bbox = [bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3]]
+            #boxes.append(new_bbox)
+    
+            if ann["iscrowd"]:
+                iscrowds.append(1)
             else:
-                masks = torch.cat((masks, mask), 0)
-                print(mask)
+                iscrowds.append(0)
+
+            mask = self.coco.annToMask(ann)
+            masks_list.append(torch.from_numpy(mask))
+
+            pos = np.where(mask > 0)
+            xmin = np.min(pos[1])
+            xmax = np.max(pos[1])
+            ymin = np.min(pos[0])
+            ymax = np.max(pos[0])
+            boxes.append([xmin, ymin, xmax, ymax])            
+
+        # to tensors
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int64)
+        area = torch.as_tensor(areas, dtype=torch.int64)
+        masks = torch.stack(masks_list, 2)
+        iscrowd = torch.as_tensor(iscrowds, dtype=torch.int64)
+        image_id = torch.tensor([idx])
+
+        target = {}
+        target["boxes"] = boxes
+        target["labels"] = labels
+        target["masks"] = masks
+        target["image_id"] = image_id
+        target["area"] = area
+        target["iscrowd"] = iscrowd
 
         # loading image
         image_path = self.coco.loadImgs(img_id)[0]['file_name']
         img = Image.open(os.path.join(self.root, image_path)).convert('RGB')
         im_conv = T.ToTensor()
         img = im_conv(img)
-
-
 
         # applying transforms
         if self.image_transforms is not None:

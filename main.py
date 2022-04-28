@@ -1,6 +1,7 @@
 from engine import train_one_epoch, evaluate
 from models import MaskRCNN_model
 from data_loader import COCOLoader
+import torch
 import utils
 
 def main():
@@ -14,10 +15,13 @@ def main():
     dataset = COCOLoader("data/jersey_royal_ds/train", "data/jersey_royal_ds/train/train.json")
     dataset_test = COCOLoader("data/jersey_royal_ds/val", "data/jersey_royal_ds/val/val.json")
 
-      # split the dataset in train and test set
-    indices = torch.randperm(len(dataset)).tolist()
-    dataset = torch.utils.data.Subset(dataset, indices[:-50])
-    dataset_test = torch.utils.data.Subset(dataset_test, indices[-50:])
+    print(len(dataset))
+
+
+    ## split the dataset in train and test set
+    #indices = torch.randperm(len(dataset)).tolist()
+    #dataset = torch.utils.data.Subset(dataset, indices[:-50])
+    #dataset_test = torch.utils.data.Subset(dataset_test, indices[-50:])
     
     # define training and validation data loaders
     data_loader = torch.utils.data.DataLoader(
@@ -29,7 +33,7 @@ def main():
         collate_fn=utils.collate_fn)
 
     # get the model using our helper function
-    model = get_model_instance_segmentation(num_classes)
+    model = MaskRCNN_model(num_classes)
 
     # move model to the right device
     model.to(device)
@@ -51,8 +55,13 @@ def main():
         # train for one epoch, printing every 10 iterations
         train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
         # update the learning rate
-        lr_scheduler.step()
+        #lr_scheduler.step()
         # evaluate on the test dataset
-        evaluate(model, data_loader_test, device=device)
+        #evaluate(model, data_loader_test, device=device)
 
     print("That's it!")
+    """
+    """
+
+if __name__ == "__main__":
+    main()

@@ -47,7 +47,7 @@ class COCOLoader(data.Dataset):
         return img, target
 
     def __len__(self):
-        print(len(self.ids))
+        return len(self.ids)
         
 #if __name__ == "__main__":
 #    

@@ -73,7 +73,7 @@ class PennFudanDataset(torch.utils.data.Dataset):
         return img, target
 
     def __len__(self):
-        return len(self.imgs)
+        return len(self.ids)
 
 ## =======================================================================================
 ## Defining model --- [Uncomment to use]

@@ -26,14 +26,19 @@ class COCOLoader(data.Dataset):
         img_id = self.ids[idx]
         ann_ids = self.coco.getAnnIds(imgIds = img_id)
         
-        masks_arr = []
         # generating target/s
         anns = self.coco.loadAnns(ann_ids)
+        first_mask = True
         for ann in anns:
             mask = self.coco.annToMask(ann)
-            masks_arr.append(mask)
-        masks_array = n.array(masks_arr)
-        masks = torch.as_tensor(masks_arr, dtype=torch.uint8)
+            mask = torch.from_numpy(mask) 
+            if first_mask:
+                masks = mask
+                first_mask = False
+                print(mask)
+            else:
+                masks = torch.cat((masks, mask), 0)
+                print(mask)
 
         # loading image
         image_path = self.coco.loadImgs(img_id)[0]['file_name']

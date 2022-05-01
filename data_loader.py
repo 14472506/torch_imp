@@ -29,7 +29,7 @@ class COCOLoader(data.Dataset):
         
         # generating target
         anns = self.coco.loadAnns(ann_ids)
-        
+
         labels = []
         boxes = []        
         masks_list = []
@@ -41,9 +41,9 @@ class COCOLoader(data.Dataset):
             labels.append(ann['category_id'])
             areas.append(ann['area'])
 
-            #bbox = ann['bbox']            
-            #new_bbox = [bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3]]
-            #boxes.append(new_bbox)
+            bbox = ann['bbox']            
+            new_bbox = [bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3]]
+            boxes.append(new_bbox)
     
             if ann["iscrowd"]:
                 iscrowds.append(1)
@@ -51,20 +51,21 @@ class COCOLoader(data.Dataset):
                 iscrowds.append(0)
 
             mask = self.coco.annToMask(ann)
+            mask == ann['category_id']
             masks_list.append(torch.from_numpy(mask))
 
-            pos = np.where(mask > 0)
-            xmin = np.min(pos[1])
-            xmax = np.max(pos[1])
-            ymin = np.min(pos[0])
-            ymax = np.max(pos[0])
-            boxes.append([xmin, ymin, xmax, ymax])            
+            #pos = np.where(mask == True)
+            #xmin = np.min(pos[1])
+            #xmax = np.max(pos[1])
+            #ymin = np.min(pos[0])
+            #ymax = np.max(pos[0])
+            #boxes.append([xmin, ymin, xmax, ymax])            
 
         # to tensors
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
         area = torch.as_tensor(areas, dtype=torch.int64)
-        masks = torch.stack(masks_list, 2)
+        masks = torch.stack(masks_list, 0)
         iscrowd = torch.as_tensor(iscrowds, dtype=torch.int64)
         image_id = torch.tensor([idx])
 
@@ -96,11 +97,11 @@ class COCOLoader(data.Dataset):
         
 #if __name__ == "__main__":
 #    
-#    root_dir = "data/jersey_royal_ds/val"
-#    json_root = "data/jersey_royal_ds/val/val.json"
+#    root_dir = "data/jersey_royal_ds/train"
+#    json_root = "data/jersey_royal_ds/train/train.json"
 #
 #    loader = COCOLoader(root_dir, json_root)
 #
-#    img, target = loader.__getitem__(1)
+#    img, target = loader.__getitem__(114)
 #
 #    print(target)

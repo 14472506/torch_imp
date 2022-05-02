@@ -263,7 +263,7 @@ def get_transform(train):
 # =======================================================================================
 # The main function
 # =======================================================================================
-from engine import train_one_epoch, evaluate
+from torchvision_files.engine import train_one_epoch, evaluate
 import utils
 from tqdm import tqdm
 from matplotlib import pyplot as plt
@@ -283,7 +283,7 @@ def main():
     dataset_test = COCOLoader("data/jersey_royal_ds/val", "data/jersey_royal_ds/val/val.json")
 
 
-    im, targ = dataset.__getitem__(int(0))
+    #im, targ = dataset.__getitem__(int(0))
     # split the dataset in train and test set
     #indices = torch.randperm(len(dataset)).tolist()
     #dataset = torch.utils.data.Subset(dataset, indices[:-50])

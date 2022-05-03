@@ -58,9 +58,11 @@ def main(conf_dict):
                                                    step_size=3,
                                                    gamma=0.1)
 
-    training_loop(model, device, optimizer, train_data_loader, start_epoch,
-                    conf_dict["num_epochs"], conf_dict["print_freq"], conf_dict["out_dir"])
+    loss_err, val_err, epoch = training_loop(model, device, optimizer, train_data_loader, 
+                                            val_data_loader, start_epoch, conf_dict["num_epochs"],
+                                            conf_dict["print_freq"], conf_dict["out_dir"])
 
+    print(loss_err, val_err, epoch)
     #for epoch in range(num_epochs):
     #    # train for one epoch, printing every 10 iterations
     #    train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)

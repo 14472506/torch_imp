@@ -3,6 +3,7 @@ from data_loader import COCOLoader
 import torch
 import utils
 from engine import training_loop
+import json
 
 def data_loader_config(dir, batch_size):
     # configuring json string
@@ -58,18 +59,9 @@ def main(conf_dict):
                                                    step_size=3,
                                                    gamma=0.1)
 
-    loss_err, val_err, epoch = training_loop(model, device, optimizer, train_data_loader, 
-                                            val_data_loader, start_epoch, conf_dict["num_epochs"],
-                                            conf_dict["print_freq"], conf_dict["out_dir"])
-
-    print(loss_err, val_err, epoch)
-    #for epoch in range(num_epochs):
-    #    # train for one epoch, printing every 10 iterations
-    #    train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
-    #    # update the learning rate
-    #    lr_scheduler.step()
-    #    # evaluate on the test dataset
-    #    evaluate(model, data_loader_test, device=device)
+    training_loop(model, device, optimizer, train_data_loader, val_data_loader, start_epoch,
+                  conf_dict["num_epochs"], conf_dict["print_freq"], conf_dict["out_dir"],
+                  conf_dict["val_freq"])
 
     print("training complete")
 
@@ -83,11 +75,12 @@ if __name__ == "__main__":
 
     conf_dict["batch_size"] = 2
     conf_dict["num_classes"] = 2 
-    conf_dict["num_epochs"] = 2
-    conf_dict["print_freq"] = 10   
+    conf_dict["num_epochs"] = 50
+    conf_dict["print_freq"] = 10
+    conf_dict["val_freq"] = 20   
     
-    conf_dict["out_dir"] = "output/dev_test0"
-    conf_dict["load"] = "output/dev_test2/checkpoints/1_9.pth"
+    conf_dict["out_dir"] = "output/Mask_RCNN_R50_test"
+    conf_dict["load"] = ""
 
     # call main
     main(conf_dict)

@@ -1,5 +1,12 @@
-import numpy as np
+import json
+from urllib.parse import _NetlocResultMixinStr
 
-f = np.array([2.01, 2.05, 2.11, 1.99, 2.05, 1.98], dtype=float)
-grad = np.gradient(f, 3)
-print(grad)
+from engine import val_one_epoch
+
+data = {
+    "min_train_val": None,
+    "min_train_iter ": None,
+    "min_val": None,
+    "min_val_iter": None,
+    "min_val_train_loss": None
+}

@@ -75,8 +75,8 @@ if __name__ == "__main__":
 
     conf_dict["batch_size"] = 2
     conf_dict["num_classes"] = 2 
-    conf_dict["num_epochs"] = 2
-    conf_dict["print_freq"] = 10
+    conf_dict["num_epochs"] = 20
+    conf_dict["print_freq"] = 20
     conf_dict["val_freq"] = 20   
     
     conf_dict["out_dir"] = "output/Mask_RCNN_R50_test"

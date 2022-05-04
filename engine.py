@@ -12,18 +12,18 @@ import json
 
 ##### functions ###################################################################################
 
-def check_trigger(loss_val, results_dict):
-    r = results_dict['val_loss']
-    try:
-        eval = np.array([loss_val, r[-1], r[-2], r[-3], r[-4]])
-        grad = np.gradient(eval, 2)
-        print(grad)
-    except IndexError:
-        pass
+#def check_trigger(loss_val, results_dict):
+#    r = results_dict['val_loss']
+#    try:
+#        eval = np.array([r[-3], r[-2], r[-1]], dtype=float)
+#        #grad = np.gradient(eval, 2)
+#        print(eval)
+#    except IndexError:
+#        pass
 
 
 
-def checkpoint(epoch, model, optimizer, out_dir):
+def checkpoint(epoch, model, optimizer, out_dir, file_name):
     """
     name: checkpoint
 
@@ -42,12 +42,69 @@ def checkpoint(epoch, model, optimizer, out_dir):
         'optimizer': optimizer.state_dict()
     }
 
-    # file path
-    file_name = "best_model.pth"             
+    # file path            
     file_path = out_dir + "/checkpoints/" + file_name
 
     # saving checkpoint
     torch.save(checkpoint, file_path)
+
+
+
+def save_models(epoch, optimizer, model, results_dict, out_dir, loss_value, iter_count):
+    """
+    name: save_models
+
+    function: The function handles the logic behind saving models in the training loop.
+              The function makes use of the save checkpoint function where appropriate
+
+    inputs:
+
+    outputs:
+    """
+    # load meta data for saving model
+    file = out_dir + "/models_metadata.json"
+    try:
+        metadata = open(file)
+        data = json.load(metadata)
+    except FileNotFoundError:
+        data = {
+            "min_train_val": None,
+            "min_train_iter": None,
+            "min_val_val": None,
+            "min_val_iter": None,
+            "min_val_train_loss": None
+        }
+
+    # saving best train model
+    if not data['min_train_val'] or loss_value < data['min_train_val']:
+        file_name = "best_train_model.pth" 
+        checkpoint(epoch, model, optimizer, out_dir, file_name)
+        data['min_train_val'] = loss_value
+        data['min_train_iter'] = iter_count
+
+    try:
+    # saving best val model
+    # first statement checks to see if min val exists or val_loss is less then equal to min_val_loss
+        if not data['min_val_val'] or data['min_val_val'] >= min(results_dict['val_loss']):
+
+            # if val_loss is smaller, reset val_train_loss_val
+            if not data['min_val_val'] or data['min_val_val'] > min(results_dict['val_loss']):
+                data['min_val_train_loss'] = 100 # random large number
+
+                # if smallest train loss for min val loss
+                if not data['min_val_train_loss'] or loss_value < data['min_val_train_loss']: 
+                    file_name = "best_val_model.pth" 
+                    checkpoint(epoch, model, optimizer, out_dir, file_name)
+                    data['min_val_val'] = min(results_dict['val_loss'])
+                    data['min_val_train_loss'] = loss_value
+                    data['min_val_iter'] = iter_count
+    except ValueError:
+        pass
+
+    # save metadata for models
+    with open(file, 'w') as f:
+        json.dump(data, f)
+
 
 
 
@@ -79,11 +136,12 @@ def train_one_step(images, targets, model, device, optimizer, results_dict, out_
         print(loss_dict_reduced)
         sys.exit(1)
     
-    check_trigger(loss_value, results_dict)
-
-    # saving model
-    if not results_dict['train_loss'] or loss_value < min(results_dict['train_loss']):
-        checkpoint(epoch, model, optimizer, out_dir)
+    ## saving model best models
+    save_models(epoch, optimizer, model, results_dict, out_dir, loss_value, iter_count)
+    #if not results_dict['train_loss'] or loss_value < min(results_dict['train_loss']):
+    #    file_name = "best_train_model.pth" 
+    #    checkpoint(epoch, model, optimizer, out_dir, file_name)
+    #if not results_dict['val_loss'] or loss
 
     # appending loss value to lost list
 

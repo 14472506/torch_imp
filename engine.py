@@ -161,7 +161,7 @@ def train_one_epoch(print_freq, train_loader, val_loader, model, device, optimiz
         
         iter_count += 1
     
-    return iter_count
+    return results_dict, iter_count
 
 
 

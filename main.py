@@ -73,9 +73,9 @@ if __name__ == "__main__":
     conf_dict["val_ds"] = "data/jersey_royal_ds/val"
     conf_dict["test_ds"] = "data/jersey_royal_ds/test"
 
-    conf_dict["batch_size"] = 1
+    conf_dict["batch_size"] = 2
     conf_dict["num_classes"] = 2 
-    conf_dict["num_epochs"] = 1
+    conf_dict["num_epochs"] = 2
     conf_dict["print_freq"] = 10
     conf_dict["val_freq"] = 20   
     

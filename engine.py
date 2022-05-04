@@ -12,6 +12,17 @@ import json
 
 ##### functions ###################################################################################
 
+def check_trigger(loss_val, results_dict):
+    r = results_dict['val_loss']
+    try:
+        eval = np.array([loss_val, r[-1], r[-2], r[-3], r[-4]])
+        grad = np.gradient(eval, 2)
+        print(grad)
+    except IndexError:
+        pass
+
+
+
 def checkpoint(epoch, model, optimizer, out_dir):
     """
     name: checkpoint
@@ -68,6 +79,8 @@ def train_one_step(images, targets, model, device, optimizer, results_dict, out_
         print(loss_dict_reduced)
         sys.exit(1)
     
+    check_trigger(loss_value, results_dict)
+
     # saving model
     if not results_dict['train_loss'] or loss_value < min(results_dict['train_loss']):
         checkpoint(epoch, model, optimizer, out_dir)

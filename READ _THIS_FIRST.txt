@@ -1,3 +1,0 @@
-you have been stupid and tied a load of functions together. your best bet is this.
-first remove the eval from the train iter loop and instead put it in the run one epock loop after each iteration
-next, make this a class with methods and attributes because you are passing so much shit around its giving you headache.

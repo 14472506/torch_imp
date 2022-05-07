@@ -33,24 +33,25 @@ def MaskRCNN_mobilenetv2(num_classes):
     backbone.out_channels = 1280
 
     # defining anchor generator for model
-    anchor_generator = AnchorGenerator(size=((32, 64, 128, 256, 512),),
-                                   aspect_ratio=((0.5, 1.0, 2.0),))
+    anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
+                                       aspect_ratios=((0.5, 1.0, 2.0),))
 
     # define roi features for roi cropping 
-    roi_pooler = torchvision.ops.MultiScaleRoIAlign(feature_names=['0'],
-                                                output_size=7,
-                                                sample_ratio=2)
+    roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
+                                                    output_size=7,
+                                                    sampling_ratio=2)
 
     # define mask pooler for mask 
     mask_roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
-                                                                  output_size=14,
-                                                                  sampling_ratio=2)
+                                                         output_size=14,
+                                                         sampling_ratio=2)
 
+    # model
     model = MaskRCNN(backbone,
-                              num_classes=2,
-                             rpn_anchor_generator=anchor_generator,
-                              box_roi_pool=roi_pooler,
-                              mask_roi_pool=mask_roi_pooler)
+                     num_classes=2,
+                     rpn_anchor_generator=anchor_generator,
+                     box_roi_pool=roi_pooler,
+                     mask_roi_pool=mask_roi_pooler)
 
     # get number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features

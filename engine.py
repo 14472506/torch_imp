@@ -107,7 +107,6 @@ def save_models(epoch, optimizer, model, results_dict, out_dir, loss_value, iter
 
 
 
-
 def train_one_step(images, targets, model, device, optimizer, results_dict, out_dir, epoch,
                    iter_count, metric_logger):
     """

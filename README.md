@@ -2,7 +2,7 @@
 implementatations for instance segmentation using pytorch
 
 TO DOs:
-- implement model evaluation
+- check out this tomorrow https://haochen23.github.io/2020/05/instance-segmentation-mask-rcnn.html#.YnbOXFzMJNg
 
 
 For random seed

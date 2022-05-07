@@ -3,9 +3,12 @@ import errno
 import os
 import time
 from collections import defaultdict, deque
+import random
+import numpy as np
 
 import torch
 import torch.distributed as dist
+
 
 
 class SmoothedValue:
@@ -67,6 +70,7 @@ class SmoothedValue:
         )
 
 
+
 def all_gather(data):
     """
     Run all_gather on arbitrary picklable data (not necessarily tensors)
@@ -81,6 +85,7 @@ def all_gather(data):
     data_list = [None] * world_size
     dist.all_gather_object(data_list, data)
     return data_list
+
 
 
 def reduce_dict(input_dict, average=True):
@@ -108,6 +113,7 @@ def reduce_dict(input_dict, average=True):
             values /= world_size
         reduced_dict = {k: v for k, v in zip(names, values)}
     return reduced_dict
+
 
 
 class MetricLogger:
@@ -200,8 +206,10 @@ class MetricLogger:
         print(f"{header} Total time: {total_time_str} ({total_time / len(iterable):.4f} s / it)")
 
 
+
 def collate_fn(batch):
     return tuple(zip(*batch))
+
 
 
 def mkdir(path):
@@ -210,6 +218,7 @@ def mkdir(path):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
 
 
 def setup_for_distributed(is_master):
@@ -228,6 +237,7 @@ def setup_for_distributed(is_master):
     __builtin__.print = print
 
 
+
 def is_dist_avail_and_initialized():
     if not dist.is_available():
         return False
@@ -236,10 +246,12 @@ def is_dist_avail_and_initialized():
     return True
 
 
+
 def get_world_size():
     if not is_dist_avail_and_initialized():
         return 1
     return dist.get_world_size()
+
 
 
 def get_rank():
@@ -248,13 +260,16 @@ def get_rank():
     return dist.get_rank()
 
 
+
 def is_main_process():
     return get_rank() == 0
+
 
 
 def save_on_master(*args, **kwargs):
     if is_main_process():
         torch.save(*args, **kwargs)
+
 
 
 def init_distributed_mode(args):
@@ -280,3 +295,16 @@ def init_distributed_mode(args):
     )
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
+
+
+
+def fix_seed(seed):
+    """
+    function sets the random seeds for python, numpy, and pytorch
+    """
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False

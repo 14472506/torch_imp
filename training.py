@@ -1,3 +1,4 @@
+from ctypes import util
 from models import MaskRCNN_model
 from data_loader import COCOLoader
 import torch
@@ -26,9 +27,9 @@ def main(conf_dict):
 
     # This line should be ran first to ensure a gpu is being used if possible
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # fixing the random seed: 42 is the key!
+    utils.fix_seed(42)
     
-    # 2 classes, 1 is the background
-     
     # retieving data loaders
     if conf_dict["train_ds"] is not "":
         train_data_loader = data_loader_config(conf_dict["train_ds"], conf_dict['batch_size'])

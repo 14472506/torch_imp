@@ -187,34 +187,34 @@ class COCOLoader(torch.utils.data.Dataset):
 ## replace pre-trained heads with a new one
 #model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-## =======================================================================================
-## Modifying the model to add different backbone --- [Uncomment to use]
-## =======================================================================================
-#import torchvision
-#from torchvision.models.detection import FasterRCNN
-#from torchvision.models.detection.rpn import AnchorGenerator
-#
-## loading the pre-trained model for classification and return only the features
-#backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-#
-## FastRCNN requires the number of output channels in the backbone for mobilenet_v2 its
-## 1280 so this must be defined
-#backbone.out_channels = 1280
-#
-## The RPN is going to generate 5 x 3 anchors per spatial location with 5 different sizes and
-## 3 different aspects rations. We have a [Tuple[Tuple[int]]] because each feature map could
-## potentially have different sizes and aspect ratios
-#anchor_generator = AnchorGenerator(size=((32, 64, 128, 256, 512),),
-#                                   aspect_ratio=((0.5, 1.0, 2.0),))
-#
-## defining the region of the feature map that is used to perform ROI cropping, as well as
-## the size of the crop after rescalling. if the backbone returns a tensor, featuremap_names
-## expected to be [0]. more generally backbone should return and OrderedDict[Tensor], and 
-## in featuremap_names you can choose which feature map to use.
-#roi_pooler = torchvision.ops.MultiScaleRoIAlign(feature_names=['0'],
-#                                                output_size=7,
-#                                                sample_ratio=2)
-#
+# =======================================================================================
+# Modifying the model to add different backbone --- [Uncomment to use]
+# =======================================================================================
+import torchvision
+from torchvision.models.detection import FasterRCNN
+from torchvision.models.detection.rpn import AnchorGenerator
+
+# loading the pre-trained model for classification and return only the features
+backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+
+# FastRCNN requires the number of output channels in the backbone for mobilenet_v2 its
+# 1280 so this must be defined
+backbone.out_channels = 1280
+
+# The RPN is going to generate 5 x 3 anchors per spatial location with 5 different sizes and
+# 3 different aspects rations. We have a [Tuple[Tuple[int]]] because each feature map could
+# potentially have different sizes and aspect ratios
+anchor_generator = AnchorGenerator(size=((32, 64, 128, 256, 512),),
+                                   aspect_ratio=((0.5, 1.0, 2.0),))
+
+# defining the region of the feature map that is used to perform ROI cropping, as well as
+# the size of the crop after rescalling. if the backbone returns a tensor, featuremap_names
+# expected to be [0]. more generally backbone should return and OrderedDict[Tensor], and 
+# in featuremap_names you can choose which feature map to use.
+roi_pooler = torchvision.ops.MultiScaleRoIAlign(feature_names=['0'],
+                                                output_size=7,
+                                                sample_ratio=2)
+
 ## putting the pieces together inside a FasterRCNN model
 #model = FasterRCNN(backbone,
 #                   num_classes=2,

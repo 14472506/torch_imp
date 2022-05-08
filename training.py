@@ -39,8 +39,8 @@ def main(conf_dict):
         test_data_loader = data_loader_config(conf_dict["test_ds"], conf_dict['batch_size'])
 
     # get the model from model function and load it to device
-    #model = MaskRCNN_model(conf_dict['num_classes'])  
-    model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
+    model = MaskRCNN_model(conf_dict['num_classes'])  
+    #model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
     model.to(device)  
 
     # construct an optimizer

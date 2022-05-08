@@ -7,6 +7,7 @@ from torchvision.models.detection import MaskRCNN
 # Mask R-CNN, currently with resnet50 backbone
 def MaskRCNN_model(num_classes):
     # load an instance segmentation model pre-trained on COCO
+
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
 
     # get number of input features for the classifier
@@ -52,7 +53,7 @@ def MaskRCNN_mobilenetv2(num_classes):
                      rpn_anchor_generator=anchor_generator,
                      box_roi_pool=roi_pooler,
                      mask_roi_pool=mask_roi_pooler)
-
+    
     # get number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     # replace the pre-trained head with a new one

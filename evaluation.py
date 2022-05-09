@@ -3,13 +3,55 @@ import torchvision.transforms as T
 import torch
 
 from models import MaskRCNN_model, MaskRCNN_mobilenetv2
+import utils
+from data_loader import COCOLoader
 
 import cv2
 import random
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
+import math
+import sys
+import time
 
+import utils
+from coco_eval import CocoEvaluator
+from coco_utils import get_coco_api_from_dataset
+
+
+
+def data_loader_config(dir, batch_size):
+    """
+    funttion task: to configure the data loader using only one string to reduce inputs in the 
+                   config dictionary. the function makes the assumption that json is titled
+                   the same as the file is it located in. i.e "train".
+
+    inputs: (dir[str]) - A string used to get the json string and to point the COCO loader at 
+                         the directory where the data is stored
+            
+            (batch_size[int]) - passed to the data loader function
+    
+    outputs: returns a dataload that parses the coco dataset pointed to by the dir
+    
+    dependancies: - COCOLoader function from data_loader.py
+    """
+    
+    # configuring json string
+    json = "/" + dir.split("/")[-1] + ".json"
+    
+    # loading dataset
+    dataset = COCOLoader(dir, dir + json)
+
+    # configuring data loader
+    data_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+        collate_fn=utils.collate_fn)
+    
+    # returing data loader
+    return(data_loader)
+  
+  
 
 def get_coloured_mask(mask):
   """
@@ -26,7 +68,6 @@ def get_coloured_mask(mask):
   r[mask == 1], g[mask == 1], b[mask == 1] = colours[random.randrange(0,10)]
   coloured_mask = np.stack([r, g, b], axis=2)
   return coloured_mask
-
 
 
 
@@ -91,10 +132,73 @@ def segment_instance(img_path, COCO_CLASS_NAMES, model, confidence=0.5, rect_th=
   plt.xticks([])
   plt.yticks([])
   plt.show()
+
+
+
+@torch.inference_mode()
+def evaluate(model, data_loader, device):
+    n_threads = torch.get_num_threads()
+    # FIXME remove this and make paste_masks_in_image run on the GPU
+    torch.set_num_threads(1)
+    cpu_device = torch.device("cpu")
+    model.eval()
+    metric_logger = utils.MetricLogger(delimiter="  ")
+    header = "Test:"
+
+    coco = get_coco_api_from_dataset(data_loader.dataset)
+    iou_types = _get_iou_types(model)
+    coco_evaluator = CocoEvaluator(coco, iou_types)
+
+    for images, targets in metric_logger.log_every(data_loader, 100, header):
+        images = list(img.to(device) for img in images)
+
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        model_time = time.time()
+        outputs = model(images)
+
+        outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
+        model_time = time.time() - model_time
+
+        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        evaluator_time = time.time()
+        coco_evaluator.update(res)
+        evaluator_time = time.time() - evaluator_time
+        metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
+
+    # gather the stats from all processes
+    metric_logger.synchronize_between_processes()
+    print("Averaged stats:", metric_logger)
+    coco_evaluator.synchronize_between_processes()
+
+    # accumulate predictions from all images
+    coco_evaluator.accumulate()
+    coco_evaluator.summarize()
+    torch.set_num_threads(n_threads)
+    return coco_evaluator
+
+
+
+def _get_iou_types(model):
+    model_without_ddp = model
+    if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+        model_without_ddp = model.module
+    iou_types = ["bbox"]
+    if isinstance(model_without_ddp, torchvision.models.detection.MaskRCNN):
+        iou_types.append("segm")
+    if isinstance(model_without_ddp, torchvision.models.detection.KeypointRCNN):
+        iou_types.append("keypoints")
+    return iou_types
+
+
+
+def main(model_path, num_classes, img_path, data_path, seg_instance=False, coco_eval_key=False, fps_eval=False):
   
-
-
-def main(model_path, num_classes, img_path):
+    # This line should be ran first to ensure a gpu is being used if possible
+    #device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cpu')
+    # fixing the random seed: 42 is the key!
+    utils.fix_seed(42)
 
     # load model: TODO, put this somewhere else i.e in models
     model = MaskRCNN_model(num_classes) 
@@ -106,22 +210,30 @@ def main(model_path, num_classes, img_path):
 
     # define category names
     Labels = ['__background__', 'jersey_royal']
-
-    segment_instance(img_path,
-                     Labels,
-                     model,
-                     confidence=0.5,
-                     rect_th=2,
-                     text_size=2,
-                     text_th=2
-                     )
+    
+    # getting data_loader
+    test_data_loader = data_loader_config(data_path, 2)
+    
+    if seg_instance:
+      segment_instance(img_path,
+                       Labels,
+                       model,
+                       confidence=0.5,
+                       rect_th=2,
+                       text_size=2,
+                       text_th=2
+                       )
+    
+    if coco_eval_key:
+      evaluate(model, test_data_loader, device=device)
 
 
 
 if __name__ == "__main__":
     
-    model_path = "output/Mask_RCNN_R50_test/checkpoints/best_val_model.pth"
+    model_path = "output/Mask_RCNN_dev_test/checkpoints/best_val_model.pth"
     num_classes = 2
-    img_path = "data/jersey_royal_ds/val/118.JPG"
+    img_path = "data/jersey_royal_dataset/test/162.JPG"
+    data_path = "data/jersey_royal_dataset/test"
 
-    main(model_path, num_classes, img_path)
+    main(model_path, num_classes, img_path, data_path, coco_eval_key=True)

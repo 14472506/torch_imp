@@ -7,6 +7,21 @@ from engine import training_loop
 import json
 
 def data_loader_config(dir, batch_size):
+    """
+    funttion task: to configure the data loader using only one string to reduce inputs in the 
+                   config dictionary. the function makes the assumption that json is titled
+                   the same as the file is it located in. i.e "train".
+
+    inputs: (dir[str]) - A string used to get the json string and to point the COCO loader at 
+                         the directory where the data is stored
+            
+            (batch_size[int]) - passed to the data loader function
+    
+    outputs: returns a dataload that parses the coco dataset pointed to by the dir
+    
+    dependancies: - COCOLoader function from data_loader.py
+    """
+    
     # configuring json string
     json = "/" + dir.split("/")[-1] + ".json"
     
@@ -22,8 +37,31 @@ def data_loader_config(dir, batch_size):
     return(data_loader)
 
 def main(conf_dict):
-    # Look into this for fixing random seed
-    # https://vandurajan91.medium.com/random-seeds-and-reproducible-results-in-pytorch-211620301eba
+    """
+    fucntion task: The main function used to execute the training of the network. the function 
+                   saves both .pth files of the models and .json files to the output directory
+                   specified in the config dict
+    
+    inputs: (conf_dict[dict]) - The dictionary contains all input parameters which are used 
+                                throughout the training process. required inputs can be found
+                                at the bottom of the script where they are defined. once a
+                                more rigid structure for these have been defined more detials 
+                                will be provided
+    
+    outputs: (best_train_model) - the epoch, model_state_dict and optimiser state dict for the
+                                  model the achieved the best training loss whilst training
+             
+             (best_val_model) - the epoch, model_state_dict and optimiser for the best training
+                                loss value whilst the validation loss is value is the best 
+            
+             (completion message) - The final action of the loop is to print a message to the 
+                                    command line alerting the use that training is complete
+    
+    dependancies: - fix_seed from utils.py
+                  - data_loader_config function
+                  - Model function from models.py
+                  - training loop function from training.py
+    """
 
     # This line should be ran first to ensure a gpu is being used if possible
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -56,10 +94,10 @@ def main(conf_dict):
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch = checkpoint["epoch"]
     
-    # and a learning rate scheduler
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                                   step_size=3,
-                                                   gamma=0.1)
+    # and a learning rate scheduler ! implement LR scheduler
+    #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
+    #                                               step_size=3,
+    #                                               gamma=0.1)
 
     training_loop(model, device, optimizer, train_data_loader, val_data_loader, start_epoch,
                   conf_dict["num_epochs"], conf_dict["print_freq"], conf_dict["out_dir"],
@@ -71,17 +109,17 @@ if __name__ == "__main__":
     
     # defining configurabels
     conf_dict = {}
-    conf_dict["train_ds"] = "data/jersey_royal_ds/train"
-    conf_dict["val_ds"] = "data/jersey_royal_ds/val"
-    conf_dict["test_ds"] = "data/jersey_royal_ds/test"
+    conf_dict["train_ds"] = "data/jersey_royal_dataset/train"
+    conf_dict["val_ds"] = "data/jersey_royal_dataset/val"
+    conf_dict["test_ds"] = "data/jersey_royal_dataset/test"
 
-    conf_dict["batch_size"] = 1
+    conf_dict["batch_size"] = 2
     conf_dict["num_classes"] = 2 
-    conf_dict["num_epochs"] = 20
+    conf_dict["num_epochs"] = 1
     conf_dict["print_freq"] = 20
-    conf_dict["val_freq"] = 20   
+    conf_dict["val_freq"] = 5   
     
-    conf_dict["out_dir"] = "output/Mask_RCNN_R50_test"
+    conf_dict["out_dir"] = "output/Mask_RCNN_fix_test5"
     conf_dict["load"] = ""
 
     # call main

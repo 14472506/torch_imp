@@ -77,8 +77,8 @@ def main(conf_dict):
         test_data_loader = data_loader_config(conf_dict["test_ds"], conf_dict['batch_size'])
 
     # get the model from model function and load it to device
-    model = MaskRCNN_model(conf_dict['num_classes'])  
-    #model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
+    #model = MaskRCNN_model(conf_dict['num_classes'])  
+    model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
     model.to(device)  
 
     # construct an optimizer
@@ -113,9 +113,9 @@ if __name__ == "__main__":
     conf_dict["val_ds"] = "data/jersey_royal_dataset/val"
     conf_dict["test_ds"] = "data/jersey_royal_dataset/test"
 
-    conf_dict["batch_size"] = 2
+    conf_dict["batch_size"] = 1
     conf_dict["num_classes"] = 2 
-    conf_dict["num_epochs"] = 1
+    conf_dict["num_epochs"] = 20
     conf_dict["print_freq"] = 20
     conf_dict["val_freq"] = 5   
     

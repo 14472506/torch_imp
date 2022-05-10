@@ -220,7 +220,7 @@ def main(model_path, num_classes, img_path, data_path, seg_instance=False, coco_
                        model,
                        confidence=0.5,
                        rect_th=2,
-                       text_size=2,
+                       text_size=1,
                        text_th=2
                        )
     

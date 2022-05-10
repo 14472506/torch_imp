@@ -77,8 +77,8 @@ def main(conf_dict):
         test_data_loader = data_loader_config(conf_dict["test_ds"], conf_dict['batch_size'])
 
     # get the model from model function and load it to device
-    model = MaskRCNN_model(conf_dict['num_classes'])  
-    #model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
+    #model = MaskRCNN_model(conf_dict['num_classes'])  
+    model = MaskRCNN_mobilenetv2(conf_dict['num_classes'])
     model.to(device)  
 
     # construct an optimizer
@@ -94,7 +94,7 @@ def main(conf_dict):
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch = checkpoint["epoch"]
     
-    # and a learning rate scheduler ! implement LR scheduler
+    # learning rate scheduler ! implement LR scheduler
     #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
     #                                               step_size=3,
     #                                               gamma=0.1)

@@ -7,6 +7,7 @@ import utils
 from data_loader import COCOLoader
 
 import cv2
+from PIL import Image
 import random
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -192,6 +193,30 @@ def _get_iou_types(model):
 
 
 
+def fps_performance(model, image_path, device):
+    
+    # loading image
+    img = Image.open(image_path)
+    transform = T.Compose([T.ToTensor()])
+    img = transform(img)
+    img = img.to(device)
+
+    # init times list
+    times = []
+
+    for i in range(10):
+        start_time = time.time()
+          
+        pred = model([img])
+        
+        delta = time.time() - start_time
+        times.append(delta)
+    mean_delta = np.array(times).mean()
+    fps = 1 / mean_delta
+    return(fps)
+
+
+
 def main(model_path, num_classes, img_path, data_path, seg_instance=False, coco_eval_key=False, fps_eval=False):
   
     # This line should be ran first to ensure a gpu is being used if possible
@@ -214,6 +239,14 @@ def main(model_path, num_classes, img_path, data_path, seg_instance=False, coco_
     # getting data_loader
     test_data_loader = data_loader_config(data_path, 2)
     
+    if coco_eval_key:
+      evaluate(model, test_data_loader, device=device) 
+    
+    if fps_eval:
+      model.to(device)    
+      fps = fps_performance(model, img_path, device)
+      print(fps)
+
     if seg_instance:
       segment_instance(img_path,
                        Labels,
@@ -224,16 +257,13 @@ def main(model_path, num_classes, img_path, data_path, seg_instance=False, coco_
                        text_th=2
                        )
     
-    if coco_eval_key:
-      evaluate(model, test_data_loader, device=device)
-
 
 
 if __name__ == "__main__":
     
-    model_path = "output/Mask_RCNN_dev_test/checkpoints/best_val_model.pth"
+    model_path = "output/Mask_RCNN_R50_test/checkpoints/best_model.pth"
     num_classes = 2
     img_path = "data/jersey_royal_dataset/test/162.JPG"
     data_path = "data/jersey_royal_dataset/test"
 
-    main(model_path, num_classes, img_path, data_path, coco_eval_key=True)
+    main(model_path, num_classes, img_path, data_path, fps_eval=True)
